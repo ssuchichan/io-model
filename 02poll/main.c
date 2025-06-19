@@ -61,7 +61,6 @@ int main(void) {
                 }
             }
         }
-
     }
 
     close(server_fd);

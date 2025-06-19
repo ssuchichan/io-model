@@ -12,7 +12,7 @@
 #define PORT 8080
 
 void set_nonblocking(int fd) {
-    int flags = fcntl(fd, F_GETFD, 0);
+    int flags = fcntl(fd, F_GETFL, 0);
     fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
         int n = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
         for (int i = 0; i < n; i++) {
             if (events[i].data.fd == server_fd) {
+                // new connection
                 client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len);
                 set_nonblocking(client_fd);
                 event.data.fd = client_fd;
@@ -49,6 +50,7 @@ int main(int argc, char *argv[]) {
                 epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event);
                 printf("New client connected: fd %d\n", client_fd);
             } else {
+                // client data
                 char buf[1024] = {0};
                 int fd = events[i].data.fd;
                 if (use_et) {
@@ -80,6 +82,7 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+
     close(server_fd);
     close(epoll_fd);
     return 0;
